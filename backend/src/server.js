@@ -3,11 +3,13 @@ import { ENV } from './config/env.js';
 import { db } from './config/db.js';
 import { favoritesTable } from './db/schema.js';
 import { and, eq } from 'drizzle-orm';
+import job from './config/corn.js';
 
 const app = express();
 const PORT = ENV.PORT;
 
 app.use(express.json());
+if (ENV.NODE_ENV === "production") job.start();
 app.get('/api/health', (req, res) => {
   res.status(200).json({ status: 'OK' });
 });
@@ -43,11 +45,11 @@ app.delete('/api/favorites/:userId/:recipeId', async (req, res) => {
       .delete(favoritesTable)
       .where(
         and(
-        eq(favoritesTable.userId, userId),
-        eq(favoritesTable.recipeId, parseInt(recipeId))
+          eq(favoritesTable.userId, userId),
+          eq(favoritesTable.recipeId, parseInt(recipeId))
         )
       );
-  
+
     res.status(200).json({ message: 'Favorite deleted successfully' });
   } catch (error) {
     console.log("Error deleting favorite:", error);
@@ -62,7 +64,7 @@ app.get('/api/favorites/:userId', async (req, res) => {
       .select()
       .from(favoritesTable)
       .where(eq(favoritesTable.userId, userId));
-      
+
     res.status(200).json(favorites);
   } catch (error) {
     console.log("Error fetching favorites:", error);
